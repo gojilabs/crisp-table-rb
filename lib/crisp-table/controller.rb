@@ -22,6 +22,13 @@ module CrispTable
 
     included do
       include ::React::Rails::ControllerLifecycle
+      include ::React::Rails::ViewHelper
+
+      helper_method :render_table
+
+      def render_table(table_name, user = nil)
+        react_component 'CrispTable', table_name.constantize.new(controller: params[:controller]).build_table(current_user: user)
+      end
 
       def bulk_update
         updates = {}
