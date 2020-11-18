@@ -295,7 +295,7 @@ module CrispTable
       route_method = path_method ? "#{path_method}_#{route_root}" : route_root.to_s
       route_method << '_path' unless route_method.ends_with?('_path')
       args = [route_method, id].compact
-      CrispTable::Rails::Engine.routes.url_helpers.try(*args)
+      Rails.application.routes.url_helpers.try(*args)
     end
 
     def build_page

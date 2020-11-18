@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    crisp_table (0.1.0)
+    crisp-table (0.1.0)
       activerecord (>= 5.0, < 6.2)
       activesupport (>= 5.0, < 6.2)
       react-rails
@@ -41,7 +41,7 @@ GEM
     concurrent-ruby (1.1.7)
     connection_pool (2.2.3)
     crass (1.0.6)
-    erubi (1.9.0)
+    erubi (1.10.0)
     execjs (2.7.0)
     i18n (1.8.5)
       concurrent-ruby (~> 1.0)
@@ -85,7 +85,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  crisp_table!
+  crisp-table!
 
 BUNDLED WITH
    2.1.4
