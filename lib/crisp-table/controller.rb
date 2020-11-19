@@ -30,6 +30,13 @@ module CrispTable
         react_component 'CrispTable', table_name.constantize.new(controller: params[:controller]).build_table(current_user: user)
       end
 
+      def search
+        table = search_params[:table_class].constantize
+        head :not_found and return unless table.ancestors.include?(CrispTable::Table)
+
+        render json: table.new(controller: params[:controller]).request_page(params)
+      end
+
       def bulk_update
         updates = {}
         table = params[:table]&.classify&.safe_constantize
@@ -58,6 +65,24 @@ module CrispTable
         head :ok
       rescue StandardError => e
         render status: :bad_request, plain: e.message
+      end
+
+      private
+
+      def search_params
+        params.permit(
+          :limit,
+          :like,
+          :order_field,
+          :order_reverse,
+          :class,
+          :table_class,
+          :parent_id,
+          :page,
+          :id,
+          :uuid,
+          :search_params
+        )
       end
     end
   end

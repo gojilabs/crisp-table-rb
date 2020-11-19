@@ -34,7 +34,7 @@ module CrispTable
     end
 
     def self.starting_class(activerecord_class = nil)
-      @starting_class ||= (activerecord_class || name.underscore[0...-6].singularize.classify.constantize)
+      @starting_class ||= (activerecord_class || name.underscore[0...-6].split('::').last.singularize.classify.constantize)
     end
 
     def self.columns(descriptor = nil)
@@ -344,6 +344,7 @@ module CrispTable
       entity_class = klass.starting_class
       page = request_page(opts)
       page[:page_length] = klass.rows_per_page
+      page[:table_class] = klass.name
       page[:page] = 1
       page[:new_path] = generate_new_path
       page[:search_path] = generate_search_path
