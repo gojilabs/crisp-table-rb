@@ -7,12 +7,14 @@ module CrispTable
     TIME_TYPE = 'Time'.freeze
     DATE_TYPE = 'Date'.freeze
     MONEY_TYPE = 'Money'.freeze
+    USD_MONEY_TYPE = 'UsdMoney'.freeze
 
     RANGED_TYPES = [
       INTEGER_TYPE,
       TIME_TYPE,
       DATE_TYPE,
-      MONEY_TYPE
+      MONEY_TYPE,
+      USD_MONEY_TYPE,
     ].freeze
 
     def initialize(*args)
@@ -200,7 +202,7 @@ module CrispTable
         "'#{value}'"
       when DATE_TYPE
         "TO_TIMESTAMP(#{value.to_i})::date"
-      when INTEGER_TYPE, MONEY_TYPE
+      when INTEGER_TYPE, MONEY_TYPE, USD_MONEY_TYPE
         value.to_i
       when TIME_TYPE
         "TO_TIMESTAMP(#{value.to_i})"
@@ -357,7 +359,7 @@ module CrispTable
     end
 
     def search_params(options = {})
-      JSON.load(options[:search_params]) if options[:search_params].present?
+      options[:search_params]
     end
 
     def request_page(opts = {})

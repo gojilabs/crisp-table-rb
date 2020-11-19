@@ -1,10 +1,24 @@
 require 'react/rails/controller_lifecycle'
 require 'react/rails/view_helper'
+require 'base64'
 
 module CrispTable
   module Controller
     extend ActiveSupport::Concern
 
+    ACCEPTABLE_SEARCH_PARAMS = %W(
+      limit
+      like
+      order_field
+      order_reverse
+      class
+      table_class
+      parent_id
+      page
+      id
+      uuid
+      search_params
+    ).freeze
 
     class BulkEditError < StandardError; end
 
@@ -31,10 +45,10 @@ module CrispTable
       end
 
       def search
-        table = search_params[:table_class].constantize
+        table = search_params['table_class'].constantize
         head :not_found and return unless table.ancestors.include?(CrispTable::Table)
 
-        render json: table.new(controller: params[:controller]).request_page(params)
+        render json: table.new(controller: params[:controller]).request_page(search_params)
       end
 
       def bulk_update
@@ -70,19 +84,17 @@ module CrispTable
       private
 
       def search_params
-        params.permit(
-          :limit,
-          :like,
-          :order_field,
-          :order_reverse,
-          :class,
-          :table_class,
-          :parent_id,
-          :page,
-          :id,
-          :uuid,
-          :search_params
+        return @search_params if defined?(@search_params)
+
+        @search_params = JSON.parse(
+          Base64.urlsafe_decode64(
+            params['q']
+          )
         )
+
+        @search_params.slice!(*ACCEPTABLE_SEARCH_PARAMS)
+        @search_params = @search_params.with_indifferent_access
+        @search_params
       end
     end
   end
