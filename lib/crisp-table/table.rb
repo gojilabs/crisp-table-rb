@@ -59,6 +59,41 @@ module CrispTable
       end
     end
 
+    def self.disable_routes(*args)
+      if args.present? && !defined?(@disabled_routes)
+        @disabled_routes = [args]
+        @disabled_routes.flatten!
+        @disabled_routes.compact!
+        @disabled_routes.uniq!
+      end
+
+      @disabled_routes
+    end
+
+    def self.route_disabled?(route)
+      disable_routes.present? && (disable_routes.include?(route) || disable_routes.include?(route.to_s))
+    end
+
+    def self.new_route_disabled?
+      route_disabled?(:new)
+    end
+
+    def self.search_route_disabled?
+      route_disabled?(:search)
+    end
+
+    def self.show_route_disabled?
+      route_disabled?(:show)
+    end
+
+    def self.update_route_disabled?
+      route_disabled?(:update)
+    end
+
+    def self.destroy_route_disabled?
+      route_disabled?(:destroy)
+    end
+
     def self.query_columns
       @query_columns ||= columns.select do |column|
         column.key?(:name) || column.key?(:field) || column.key?(:view_field) || column.key?(:column)
@@ -376,27 +411,36 @@ module CrispTable
     private
 
     def generate_new_path
+      return nil if self.class.new_route_disabled?
+
       self.class.path_for(self.class.new_path, nil, @entity_search_id) ||
       self.class.path_for(@singular_route_root, :new, @entity_search_id)
     end
 
     def generate_search_path
+      return nil if self.class.search_route_disabled?
       @search_path ||
       self.class.path_for(self.class.search_path, nil, @entity_search_id) ||
       self.class.path_for(@plural_route_root, :search, @entity_search_id)
     end
 
     def generate_show_path(id)
+      return nil if self.class.show_route_disabled?
+
       self.class.path_for(self.class.show_path, nil, id) ||
       self.class.path_for(@singular_route_root, nil, id)
     end
 
     def generate_update_path(id)
+      return nil if self.class.update_route_disabled?
+
       self.class.path_for(self.class.update_path, nil, id) ||
       self.class.path_for(@singular_route_root, nil, id)
     end
 
-    def generate_delete_path(id)
+    def generate_destroy_path(id)
+      return nil if self.class.destroy_route_disabled?
+
       self.class.path_for(self.class.delete_path, nil, id) ||
       self.class.path_for(@singular_route_root, nil, id)
     end
@@ -432,7 +476,7 @@ module CrispTable
         {
           show_path: generate_show_path(id),
           update_path: generate_update_path(id),
-          delete_path: generate_delete_path(id),
+          delete_path: generate_destroy_path(id),
           id: id,
           record: (1..column_count).map do |column_index|
                     field = row[column_index]
