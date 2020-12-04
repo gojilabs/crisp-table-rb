@@ -236,7 +236,7 @@ module CrispTable
       when STRING_TYPE
         "'#{value}'"
       when DATE_TYPE
-        "TO_TIMESTAMP(#{value.to_i})::date"
+        "TO_DATE('#{Date.parse(value).iso8601}', 'YYYY-MM-DD')"
       when INTEGER_TYPE, MONEY_TYPE, USD_MONEY_TYPE
         value.to_i
       when TIME_TYPE
