@@ -311,7 +311,14 @@ module CrispTable
           string_type = column[:type] == STRING_TYPE
           current_field = column[:field]
           if has_field && !field_added && field == current_field
-            direction = reverse ? (string_type ? 'DESC' : 'ASC') : (string_type ? 'ASC' : 'DESC')
+            direction =
+              if column[:type] == BOOLEAN_TYPE
+                reverse ? 'ASC NULLS FIRST' : 'DESC NULLS LAST'
+              elsif string_type
+                reverse ? 'DESC' : 'ASC'
+              else
+                reverse ? 'ASC' : 'DESC'
+              end
             acc.unshift("#{current_field} #{direction}")
             field_added = true
           else
