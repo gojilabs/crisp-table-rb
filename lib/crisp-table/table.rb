@@ -17,6 +17,11 @@ module CrispTable
       USD_MONEY_TYPE,
     ].freeze
 
+    TIMEZONED_TYPES = [
+      TIME_TYPE,
+      DATE_TYPE
+    ].freeze
+
     def initialize(*args)
       opts = args.extract_options!
       @attachment_values = (args || []).flatten
@@ -55,6 +60,7 @@ module CrispTable
         column[:bulk_editable] = bulk_update_path.present? if column[:name] == :created_at || column[:name] == :updated_at || column[:association] || column[:join] || column[:left_join]
 
         column[:range] = RANGED_TYPES.include?(column[:type]) unless column.key?(:range)
+        column[:timezone] ||= CrispTable::Configuration.timezone if TIMEZONED_TYPES.include?(column[:type])
         column
       end
     end
@@ -235,14 +241,22 @@ module CrispTable
       case column[:value_type]
       when STRING_TYPE
         "'#{value}'"
-      when DATE_TYPE
-        "TO_DATE('#{Date.parse(value).iso8601}', 'YYYY-MM-DD')"
-      when INTEGER_TYPE, MONEY_TYPE, USD_MONEY_TYPE
-        value.to_i
-      when TIME_TYPE
-        "TO_TIMESTAMP(#{value.to_i})"
+      when DATE_TYPE, TIME_TYPE
+        Time.use_zone(CrispTable::Configuration.timezone) do
+          timestamp = 
+            if column[:value_type] == DATE_TYPE
+              Time.zone.parse(value)
+            elsif column[:value_type] == TIME_TYPE
+              Time.zone.at(value.to_i)
+            else
+              raise "Invalid column value type '#{column[:value_type]}' on '#{column[:field]}"
+            end
+          "'#{timestamp.to_s(:db)}'::timestamptz"
+        end
       when BOOLEAN_TYPE
         "'#{value ? 't' : 'f'}'"
+      when INTEGER_TYPE, MONEY_TYPE, USD_MONEY_TYPE
+        value.to_i
       end
     end
 
@@ -264,7 +278,8 @@ module CrispTable
     def self.like_statement(like_value)
       return nil if like_value.blank? || like_value == ''
       searchable_columns.map do |column|
-        "CAST(#{column[:field]} AS text) ILIKE '%#{like_value}%'"
+        field = "#{(column[:table].to_s + '.') if starting_class.table_name != column[:table]}#{column[:field]}"
+        "CAST(#{field} AS text) ILIKE '%#{like_value}%'"
       end.join(' OR ')
     end
 
