@@ -243,7 +243,7 @@ module CrispTable
         "'#{value}'"
       when DATE_TYPE, TIME_TYPE
         Time.use_zone(CrispTable::Configuration.timezone) do
-          timestamp = 
+          timestamp =
             if column[:value_type] == DATE_TYPE
               Time.zone.parse(value)
             elsif column[:value_type] == TIME_TYPE
@@ -278,8 +278,7 @@ module CrispTable
     def self.like_statement(like_value)
       return nil if like_value.blank? || like_value == ''
       searchable_columns.map do |column|
-        field = "#{(column[:table].to_s + '.') if starting_class.table_name != column[:table]}#{column[:field]}"
-        "CAST(#{field} AS text) ILIKE '%#{like_value}%'"
+        "CAST(#{column[:field]} AS text) ILIKE '%#{like_value}%'"
       end.join(' OR ')
     end
 
