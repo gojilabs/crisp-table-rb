@@ -60,7 +60,7 @@ module CrispTable
         column[:bulk_editable] = bulk_update_path.present? if column[:name] == :created_at || column[:name] == :updated_at || column[:association] || column[:join] || column[:left_join]
 
         column[:range] = RANGED_TYPES.include?(column[:type]) unless column.key?(:range)
-        column[:timezone] ||= CrispTable::Configuration.timezone if TIMEZONED_TYPES.include?(column[:type])
+        column[:timezone] = (column[:timezone].presence || CrispTable::Configuration.timezone) if TIMEZONED_TYPES.include?(column[:type])
         column
       end
     end
@@ -242,21 +242,27 @@ module CrispTable
       when STRING_TYPE
         "'#{value}'"
       when DATE_TYPE, TIME_TYPE
-        Time.use_zone(CrispTable::Configuration.timezone) do
-          timestamp =
-            if column[:value_type] == DATE_TYPE
-              Time.zone.parse(value)
-            elsif column[:value_type] == TIME_TYPE
-              Time.zone.at(value.to_i)
-            else
-              raise "Invalid column value type '#{column[:value_type]}' on '#{column[:field]}"
-            end
-          "'#{timestamp.to_s(:db)}'::timestamptz"
+        opts = {
+          year: value[0...4].to_i,
+          month: value[5...7].to_i,
+          day: value[8...10].to_i,
+          hour: 0,
+          min: 0,
+          sec: 0
+        }
+        if column[:value_type] == TIME_TYPE
+          opts[:hour] = value[11...13].to_i
+          opts[:min] = value[14...16].to_i
+          opts[:sec] = value[17...19].to_i
         end
+        timestamp = DateTime.new.in_time_zone(column[:timezone]).change(opts)
+        "'#{timestamp.to_s(:db)}'::timestamptz"
       when BOOLEAN_TYPE
         "'#{value ? 't' : 'f'}'"
       when INTEGER_TYPE, MONEY_TYPE, USD_MONEY_TYPE
         value.to_i
+      else
+        raise "Invalid column value type '#{column[:value_type]}' on '#{column[:field]}"
       end
     end
 
