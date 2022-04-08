@@ -71,6 +71,8 @@ module CrispTable
           klass.where(id: params[:ids]).find_each do |entity|
             entity.update!(updates)
           end
+
+          klass.refresh! if klass.respond_to?(:refresh!)
         end
 
         msg = respond_to?(:bulk_update_success_message) ? send(:bulk_update_success_message) : 'Record(s) updated successfully'

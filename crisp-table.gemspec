@@ -24,4 +24,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'activerecord', '>= 5.0', '< 7.1'
   spec.add_dependency 'activesupport', '>= 5.0', '< 7.1'
   spec.add_dependency 'react-rails'
+  spec.add_development_dependency 'solargraph'
+  spec.add_development_dependency 'pry-rails'
 end
