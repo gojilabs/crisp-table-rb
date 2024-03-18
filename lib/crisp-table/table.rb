@@ -260,7 +260,7 @@ module CrispTable
       when BOOLEAN_TYPE
         "'#{value ? 't' : 'f'}'"
       when INTEGER_TYPE, MONEY_TYPE, USD_MONEY_TYPE
-        value.to_i
+        (value.to_f * 100).to_i
       else
         raise "Invalid column value type '#{column[:value_type]}' on '#{column[:field]}"
       end
@@ -291,6 +291,8 @@ module CrispTable
     def self.where_statement(search, like)
       search_clause = search_statements(search).join(' AND ') if search.present?
       like_clause = like_statement(like) if like.present?
+
+      search_clause = search_clause.gsub(/orders\.total/, 'pricing.total') if search_clause&.include?('orders.total')
 
       if search_clause && like_clause
         "#{search_clause} AND (#{like_clause})"
