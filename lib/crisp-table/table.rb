@@ -205,7 +205,7 @@ module CrispTable
 
       formatted_value = format_search_param(column, value)
 
-      return "LOWER(#{formatted_field}) = LOWER(#{formatted_value})" if column[:type] == STRING_TYPE && (!column[:value_type] || column[:value_type] == STRING_TYPE)
+      return "LOWER(#{formatted_field}::text) = LOWER(#{formatted_value})" if column[:type] == STRING_TYPE && (!column[:value_type] || column[:value_type] == STRING_TYPE)
       "#{formatted_field} = #{formatted_value}"
     end
 
