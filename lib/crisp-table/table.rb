@@ -260,7 +260,7 @@ module CrispTable
       when BOOLEAN_TYPE
         "'#{value ? 't' : 'f'}'"
       when INTEGER_TYPE, MONEY_TYPE, USD_MONEY_TYPE
-        (value.to_f * 100).to_i
+        value.to_i
       else
         raise "Invalid column value type '#{column[:value_type]}' on '#{column[:field]}"
       end
