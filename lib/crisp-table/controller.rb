@@ -60,9 +60,12 @@ module CrispTable
         raise UnpermittedBulkEditError unless !current_user.respond_to?(:can_commit?) || current_user.can_commit?(klass)
 
         params[:changed_fields].each do |column_name, value|
-          raise IllegalColumnUpdateError unless table.bulk_editable_columns.any? do |column|
-            column[:field] == column_name
+          column = table.bulk_editable_columns.find do |col|
+            col[:field] == column_name
           end
+          raise IllegalColumnUpdateError unless column
+
+          value = Date.parse(value) if column[:type] == Table::DATE_TYPE && column[:omit_timezone]
 
           updates[column_name.split('.').last] = value
         end
