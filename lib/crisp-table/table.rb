@@ -55,6 +55,7 @@ module CrispTable
         column[:value_type] ||= column[:type]
         column[:sortable] = true unless column.key?(:sortable)
         column[:searchable] = true unless column.key?(:searchable)
+        column[:omit_timezone] = true if column[:type] == DATE_TYPE && column.key?(:omit_timezone)
 
         column[:bulk_editable] = true unless column.key?(:bulk_editable)
         column[:bulk_editable] = bulk_update_path.present? if column[:name] == :created_at || column[:name] == :updated_at || column[:association] || column[:join] || column[:left_join]
