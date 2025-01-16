@@ -6,7 +6,7 @@ module CrispTable
   module Controller
     extend ActiveSupport::Concern
 
-    ACCEPTABLE_SEARCH_PARAMS = %W(
+    ACCEPTABLE_SEARCH_PARAMS = %w[
       limit
       like
       order_field
@@ -18,7 +18,7 @@ module CrispTable
       id
       uuid
       search_params
-    ).freeze
+    ].freeze
 
     class BulkEditError < StandardError; end
 
@@ -41,7 +41,8 @@ module CrispTable
       helper_method :render_table
 
       def render_table(table_name, user = nil)
-        react_component 'CrispTable', table_name.constantize.new(controller: params[:controller]).build_table(current_user: user)
+        react_component 'CrispTable',
+                        table_name.constantize.new(controller: params[:controller]).build_table(current_user: user)
       end
 
       def search
@@ -92,9 +93,9 @@ module CrispTable
         return @search_params if defined?(@search_params)
 
         @search_params = JSON.parse(
-          Base64.urlsafe_decode64(
+          Base64.decode64(
             params['q']
-          )
+          ).force_encoding('ISO-8859-1').encode('UTF-8')
         )
 
         @search_params.slice!(*ACCEPTABLE_SEARCH_PARAMS)
