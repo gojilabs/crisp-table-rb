@@ -285,7 +285,7 @@ module CrispTable
     def self.like_statement(like_value)
       return nil if like_value.blank? || like_value == ''
       searchable_columns.map do |column|
-        "CAST(#{column[:searchable_field] || column[:field]} AS text) ILIKE '%#{like_value}%'"
+        "CAST(#{column[:field]} AS text) ILIKE '%#{like_value}%'"
       end.join(' OR ')
     end
 
@@ -516,10 +516,8 @@ module CrispTable
 
     def sql_count_query(search, like)
       where_statement = self.class.where_statement(search, like) if search.present? || like.present?
-      row_query = self.class.query.dup
-      row_query, group_by = split_group_by(row_query)
+      row_query = self.class.query.dup % @attachment_values
       row_query << " WHERE #{where_statement}" if where_statement.present?
-      row_query << group_by if group_by.present?
       count_query = "SELECT COUNT(id) FROM (#{row_query}) temp"
       ActiveRecord::Base.connection.exec_query(count_query.split.join(' ')).first['count']
     end
@@ -527,35 +525,14 @@ module CrispTable
     def sql_query(search, like, order, limit, offset)
       where_statement = self.class.where_statement(search, like) if search.present? || like.present?
       query = self.class.query.dup
-      query, group_by = split_group_by(query)
       query = query % @attachment_values if @attachment_values.present?
       query << "\nWHERE #{where_statement}" if where_statement.present?
-      query << group_by if group_by.present?
       query << "\nORDER BY #{order}"
       query << "\nLIMIT #{limit}" unless limit.nil?
       query << "\nOFFSET #{offset}" unless offset.nil?
       @sql_query = query.split.join(' ')
       ActiveRecord::Base.connection.exec_query(@sql_query)
     end
-
-    def split_group_by(sql)
-      # Remove any trailing whitespace and newlines
-      sql = sql.strip
-
-      # Check if the query ends with GROUP BY (case insensitive)
-      if sql.match?(/\bGROUP\s+BY\s+[^;]*$/i)
-        # Split on the last occurrence of GROUP BY
-        parts = sql.split(/\bGROUP\s+BY\s+/i)
-        main_query = parts[0].strip
-        group_by_clause = " GROUP BY #{parts[1].strip}"
-
-        [main_query, group_by_clause]
-      else
-        # Return the original query and nil if it doesn't end with GROUP BY
-        [sql, nil]
-      end
-    end
-
 
     def activerecord_count_query(search, like)
       joins_statement = self.class.joins_statement
