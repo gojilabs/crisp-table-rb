@@ -44,6 +44,22 @@ module CrispTable
       @starting_class ||= (activerecord_class || name.underscore[0...-6].split('::').last.singularize.classify.constantize)
     end
 
+    # Defines additional bulk actions for the table.
+    #
+    # Usage:
+    #   additional_bulk_actions [
+    #     {
+    #       title: 'Create expiry events', => label for select dropdown item
+    #       alert: 'Are you sure you want to create expiry events for each of these applications?', => optional, prompt the user before performing the action
+    #       path: '/dashboard/applications/create_expiry_events' => path to the POST action, it should accept arrays of ids
+    #     }
+    #   ]
+    #
+    # Returns the array of additional bulk actions.
+    def self.additional_bulk_actions(actions = [])
+      @additional_bulk_actions ||= actions
+    end
+
     def self.columns(descriptor = nil)
       @columns ||= descriptor.map do |column|
         column[:table] ||= column[:association]&.to_s&.pluralize || starting_class.table_name
@@ -418,6 +434,7 @@ module CrispTable
       page[:title] = title
       page[:prefix] = "#{klass.name.underscore}_"
       page[:can_save] = opts[:current_user] && (!current_user.respond_to?(:can_save?) || current_user.can_save?(entity_class))
+      page[:additional_bulk_actions] = klass.additional_bulk_actions
       page
     end
 
