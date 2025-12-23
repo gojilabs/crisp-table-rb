@@ -2,8 +2,8 @@ PATH
   remote: .
   specs:
     crisp-table (0.1.4)
-      activerecord (>= 5.0, <= 8.0)
-      activesupport (>= 5.0, <= 8.0)
+      activerecord (>= 5.0, <= 8.1)
+      activesupport (>= 5.0, <= 8.1)
       react-rails
 
 GEM

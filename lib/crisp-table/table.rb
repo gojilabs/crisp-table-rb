@@ -273,7 +273,7 @@ module CrispTable
           opts[:sec] = value[17...19].to_i
         end
         timestamp = DateTime.new.in_time_zone(column[:timezone]).change(opts)
-        "'#{timestamp.to_s(:db)}'::timestamptz"
+        "'#{timestamp.to_fs(:db)}'::timestamptz"
       when BOOLEAN_TYPE
         "'#{value ? 't' : 'f'}'"
       when INTEGER_TYPE, MONEY_TYPE, USD_MONEY_TYPE
