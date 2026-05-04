@@ -9,6 +9,8 @@ module CrispTable
     MONEY_TYPE = 'Money'.freeze
     USD_MONEY_TYPE = 'UsdMoney'.freeze
 
+    PRESENT_SENTINEL = '__present__'
+
     RANGED_TYPES = [
       INTEGER_TYPE,
       TIME_TYPE,
@@ -235,7 +237,14 @@ module CrispTable
       generate_exact_match_clause(column, value)
     end
 
+    def self.generate_presence_clause(column)
+      field = column_search_field(column)
+      "(#{field} IS NOT NULL AND #{field}::text <> '')"
+    end
+
     def self.generate_search_clause(column, value, max = nil)
+      return generate_presence_clause(column) if value == PRESENT_SENTINEL
+
       if max || column[:range]
         column_min = column[:min]
         column_max = column[:max]
